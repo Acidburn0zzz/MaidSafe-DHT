@@ -579,12 +579,19 @@ TEST_P(NodeImplTest, FUNC_FindValue) {
                          far_key_, env_->node_ids_, env_->k_) &&
           env_->node_containers_[j]->node()->joined()) {
         env_->node_containers_[j]->node()->Leave(&bootstrap_contacts_);
-        DLOG(INFO) << "\t\tSTOPPED "
+        DLOG(INFO) << "\t\t\t\t\t\t\t\t\t\t\t\t&&&&&&&&&&&&&&&&&&&&&----------------> STOPPED "
                    << DebugId(env_->node_containers_[j]->node()->contact());
         break;
       }
     }
   }
+
+
+  std::cout << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\n\n\n\n";
+  Sleep(boost::posix_time::milliseconds(2000));
+  std::cout << "\n\n\n\n=========================================================\n\n\n\n";
+
+
   find_value_returns = FindValueReturns();
   {
     boost::mutex::scoped_lock lock(env_->mutex_);
@@ -596,6 +603,10 @@ TEST_P(NodeImplTest, FUNC_FindValue) {
   }
   EXPECT_EQ(kFailedToFindValue, find_value_returns.return_code);
   EXPECT_TRUE(find_value_returns.values_and_signatures.empty());
+
+                                                                if (env_->k_ != find_value_returns.closest_nodes.size())
+                                                                  std::cout << "D'OH!\n";
+
   EXPECT_EQ(env_->k_, find_value_returns.closest_nodes.size());
   // TODO(Fraser#5#): 2011-07-14 - Handle other return fields
   Sleep(boost::posix_time::seconds(1));
@@ -613,7 +624,7 @@ TEST_P(NodeImplTest, FUNC_FindValue) {
       env_->node_containers_[i]->Join(
             env_->node_containers_[i]->node()->contact().node_id(),
             bootstrap_contacts_);
-      EXPECT_TRUE(env_->cond_var_.timed_wait(lock, kTimeout_,
+      EXPECT_TRUE(env_->cond_var_.timed_wait(lock,   boost::posix_time::hours(1),
                 env_->node_containers_[i]->wait_for_join_functor()))
                 << debug_msg_;
       env_->node_containers_[i]->GetAndResetJoinResult(&result);

@@ -28,6 +28,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maidsafe/dht/routing_table.h"
 
 #include "maidsafe/common/utils.h"
+                                                      #include "boost/thread/mutex.hpp"
 
 #include "maidsafe/dht/return_codes.h"
 #include "maidsafe/dht/utils.h"
@@ -73,8 +74,8 @@ int RoutingTable::AddContact(const Contact &contact, RankInfoPtr rank_info) {
     // will update the num_failed_rpcs to 0 as well and update the IPs ports if
     // changed.
     if (contacts_.modify(it_node, ChangeLastSeen(contact))) {
-      DLOG(WARNING) << kDebugId_ << ": Contact already in routing table "
-                    << DebugId(contact);
+//      DLOG(WARNING) << kDebugId_ << ": Contact already in routing table "
+//                    << DebugId(contact);
       return kSuccess;
     } else {
       DLOG(WARNING) << kDebugId_ << ": Failed to update last seen time for "
@@ -224,7 +225,17 @@ void RoutingTable::GetCloseContacts(
     ++counter;
     ++it;
   }
-  return;
+
+
+  static boost::mutex mutex;
+  boost::mutex::scoped_lock l(mutex);
+  std::for_each(contacts_.begin(), contacts_.end(), [&](RoutingTableContact ctct) {
+    bool got_it(std::find_if(close_contacts->begin(), close_contacts->end(), [&ctct](Contact cont) {
+      return cont.node_id() == ctct.contact.node_id();
+    }) != close_contacts->end());
+    DLOG(INFO) << "\t\t\t\t\t\t\t\t" << DebugId(ctct.contact) << (got_it ? "***" : "");
+  });
+
 }
 
 void RoutingTable::Downlist(const NodeId &node_id) {

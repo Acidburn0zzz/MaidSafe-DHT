@@ -67,6 +67,10 @@ bool StubValidate(const asymm::PlainText &plain_text,
                   const asymm::Signature &signature,
                   const asymm::PublicKey &public_key);
 
+// Used when log messages are required in header files (where log.h cannot be
+// #included).
+void PrintInfoMessage(std::string message);
+
 }  // namespace dht
 
 }  // namespace maidsafe

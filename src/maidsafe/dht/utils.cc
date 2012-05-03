@@ -153,6 +153,10 @@ bool StubValidate(const asymm::PlainText &plain_text,
     return true;
 }
 
+void PrintInfoMessage(std::string message) {
+  DLOG(INFO) << message;
+}
+
 }  // namespace dht
 
 }  // namespace maidsafe

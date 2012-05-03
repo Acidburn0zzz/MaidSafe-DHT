@@ -137,13 +137,10 @@ void NodeImpl::Join(const NodeId &node_id,
 
   // TODO(Viv) Remove Pub Key From Class Member and take in as Argument
   if (!default_private_key_ || !default_public_key_) {
-    DLOG(INFO) << "Creating Keypair";
     asymm::Keys key_pair;
     asymm::GenerateKeyPair(&key_pair);
     default_private_key_.reset(new asymm::PrivateKey(key_pair.private_key));
     default_public_key_.reset(new asymm::PublicKey(key_pair.public_key));
-  } else {
-    DLOG(INFO) << EncodeToHex(node_id.String());
   }
 
   if (!rpcs_) {
@@ -206,7 +203,6 @@ void NodeImpl::Join(const NodeId &node_id,
                                   args::_1, bootstrap_contacts, node_id,
                                   callback, true)));
 
-  DLOG(INFO) << "Before StartLookup";
   StartLookup(find_value_args);
 }
 
@@ -652,8 +648,9 @@ void NodeImpl::DoLookupIteration(LookupArgsPtr lookup_args) {
           (*itr).second.rpc_state = ContactInfo::kRepliedOK;
         } else {
           if (lookup_args->kOperationType == LookupArgs::kFindValue) {
-            DLOG(INFO) << "Sending FindValue " << DebugId(lookup_args->kTarget)
-                       << " to " << DebugId((*itr).first);
+            DLOG(INFO) << DebugId(contact_) << " sending FindValue "
+                       << DebugId(lookup_args->kTarget) << " to "
+                       << DebugId((*itr).first);
             rpcs_->FindValue(lookup_args->kTarget,
                              lookup_args->kNumContactsRequested,
                              lookup_args->private_key,
@@ -663,6 +660,9 @@ void NodeImpl::DoLookupIteration(LookupArgsPtr lookup_args) {
                                        args::_4, args::_5, (*itr).first,
                                        lookup_args));
           } else {
+            DLOG(INFO) << DebugId(contact_) << "Sending FindNodes "
+                       << DebugId(lookup_args->kTarget) << " to "
+                       << DebugId((*itr).first);
             rpcs_->FindNodes(lookup_args->kTarget,
                              lookup_args->kNumContactsRequested,
                              default_private_key_,
@@ -1638,10 +1638,10 @@ void NodeImpl::HandleRpcCallback(const Contact &contact,
         routing_table_->IncrementFailedRpcCount(contact.node_id());
   }
 #ifdef DEBUG
-  if (routing_table_result != kSuccess)
-    DLOG(INFO) << DebugId(contact_) << ": Failed to update routing table for "
-               << "contact " << DebugId(contact) << ".  RPC result: " << result
-               << "  Update result: " << routing_table_result;
+                                                //  if (routing_table_result != kSuccess)
+                                                //    DLOG(INFO) << DebugId(contact_) << ": Failed to update routing table for "
+                                                //               << "contact " << DebugId(contact) << ".  RPC result: " << result
+                                                //               << "  Update result: " << routing_table_result;
 #endif
 }
 

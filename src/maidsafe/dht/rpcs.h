@@ -35,6 +35,7 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "boost/asio/io_service.hpp"
 #include "boost/date_time/posix_time/posix_time_types.hpp"
+#include "boost/lexical_cast.hpp"
 #include "boost/tuple/tuple.hpp"
 
 #include "maidsafe/common/utils.h"
@@ -54,7 +55,6 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maidsafe/dht/config.h"
 #include "maidsafe/dht/contact.h"
 #include "maidsafe/dht/rpcs_objects.h"
-#include "maidsafe/dht/log.h"
 
 namespace args = std::placeholders;
 
@@ -256,7 +256,10 @@ void Rpcs<TransportType>::Ping(PrivateKeyPtr private_key,
       std::bind(&Rpcs::PingCallback, this, random_data, args::_1,
                 transport::Info(), protobuf::PingResponse(), object_indx,
                 callback, message, rpcs_failure_peer));
-  DLOG(INFO) << "\t2 " << DebugId(contact_) << " PING to " << DebugId(peer);
+#ifndef NDEBUG
+  PrintInfoMessage(std::string("\t") + DebugId(contact_) + " PING to " +
+                   DebugId(peer));
+#endif
   ConnectedObjectsList::TryToSend(asio_service_, transport, message,
                                   peer.PreferredEndpoint(),
                                   transport::kDefaultInitialTimeout);
@@ -291,7 +294,10 @@ void Rpcs<TransportType>::FindValue(const Key &key,
       &Rpcs::FindValueCallback, this, args::_1, transport::Info(),
       protobuf::FindValueResponse(), object_indx, callback, message,
       rpcs_failure_peer));
-  DLOG(INFO) << "\t" << DebugId(contact_) << " FIND_VALUE to " << DebugId(peer);
+#ifndef NDEBUG
+  PrintInfoMessage(std::string("\t") + DebugId(contact_) + " FIND_VALUE to " +
+                   DebugId(peer));
+#endif
   ConnectedObjectsList::TryToSend(asio_service_, transport, message,
                                   peer.PreferredEndpoint(),
                                   transport::kDefaultInitialTimeout);
@@ -326,7 +332,10 @@ void Rpcs<TransportType>::FindNodes(const Key &key,
       &Rpcs::FindNodesCallback, this, args::_1, transport::Info(),
       protobuf::FindNodesResponse(), object_indx, callback, message,
       rpcs_failure_peer));
-  DLOG(INFO) << "\t" << DebugId(contact_) << " FIND_NODES to " << DebugId(peer);
+#ifndef NDEBUG
+  PrintInfoMessage(std::string("\t") + DebugId(contact_) + " FIND_NODES to " +
+                   DebugId(peer));
+#endif
   ConnectedObjectsList::TryToSend(asio_service_, transport, message,
                                   peer.PreferredEndpoint(),
                                   transport::kDefaultInitialTimeout);
@@ -366,7 +375,10 @@ void Rpcs<TransportType>::Store(const Key &key,
       &Rpcs::StoreCallback, this, args::_1, transport::Info(),
       protobuf::StoreResponse(), object_indx, callback, message,
       rpcs_failure_peer));
-  DLOG(INFO) << "\t" << DebugId(contact_) << " STORE to " << DebugId(peer);
+#ifndef NDEBUG
+  PrintInfoMessage(std::string("\t") + DebugId(contact_) + " STORE to " +
+                   DebugId(peer));
+#endif
   ConnectedObjectsList::TryToSend(asio_service_, transport, message,
                                   peer.PreferredEndpoint(),
                                   transport::kDefaultInitialTimeout);
@@ -403,8 +415,10 @@ void Rpcs<TransportType>::StoreRefresh(
       &Rpcs::StoreRefreshCallback, this, args::_1, transport::Info(),
       protobuf::StoreRefreshResponse(), object_indx, callback, message,
       rpcs_failure_peer));
-  DLOG(INFO) << "\t" << DebugId(contact_) << " STORE_REFRESH to "
-             << DebugId(peer);
+#ifndef NDEBUG
+  PrintInfoMessage(std::string("\t") + DebugId(contact_) +
+                   " STORE_REFRESH to " + DebugId(peer));
+#endif
   ConnectedObjectsList::TryToSend(asio_service_, transport, message,
                                   peer.PreferredEndpoint(),
                                   transport::kDefaultInitialTimeout);
@@ -442,7 +456,10 @@ void Rpcs<TransportType>::Delete(const Key &key,
       &Rpcs::DeleteCallback, this, args::_1, transport::Info(),
       protobuf::DeleteResponse(), object_indx, callback, message,
       rpcs_failure_peer));
-  DLOG(INFO) << "\t" << DebugId(contact_) << " DELETE to " << DebugId(peer);
+#ifndef NDEBUG
+  PrintInfoMessage(std::string("\t") + DebugId(contact_) + " DELETE to " +
+                   DebugId(peer));
+#endif
   ConnectedObjectsList::TryToSend(asio_service_, transport, message,
                                   peer.PreferredEndpoint(),
                                   transport::kDefaultInitialTimeout);
@@ -479,8 +496,10 @@ void Rpcs<TransportType>::DeleteRefresh(
       &Rpcs::DeleteRefreshCallback, this, args::_1, transport::Info(),
       protobuf::DeleteRefreshResponse(), object_indx, callback, message,
       rpcs_failure_peer));
-  DLOG(INFO) << "\t" << DebugId(contact_) << " DELETE_REFRESH to "
-             << DebugId(peer);
+#ifndef NDEBUG
+  PrintInfoMessage(std::string("\t") + DebugId(contact_) +
+                   " DELETE_REFRESH to " + DebugId(peer));
+#endif
   ConnectedObjectsList::TryToSend(asio_service_, transport, message,
                                   peer.PreferredEndpoint(),
                                   transport::kDefaultInitialTimeout);
@@ -500,12 +519,13 @@ void Rpcs<TransportType>::Downlist(const std::vector<NodeId> &node_ids,
     notification.add_node_ids(node_ids[i].String());
   std::string message = message_handler->WrapMessage(notification,
                                                      peer.public_key());
+#ifndef NDEBUG
   std::string downlist_ids;
   for (size_t i = 0; i < node_ids.size(); ++i)
     downlist_ids += " [" + DebugId(node_ids[i]) + "]";
-
-  DLOG(INFO) << "\t" << DebugId(contact_) << " DOWNLIST " << downlist_ids
-            << " to " << DebugId(peer);
+  PrintInfoMessage(std::string("\t") + DebugId(contact_) + " DOWNLIST " +
+                   downlist_ids + " to " + DebugId(peer));
+#endif
   ConnectedObjectsList::TryToSend(asio_service_, transport, message,
                                   peer.PreferredEndpoint(),
                                   transport::kDefaultInitialTimeout);
@@ -521,8 +541,10 @@ void Rpcs<TransportType>::PingCallback(
     RpcPingFunctor callback,
     const std::string &message,
     std::shared_ptr<RpcsFailurePeer> rpcs_failure_peer) {
-  DLOG(INFO) << "\t" << DebugId(contact_) << " PING response from "
-             << DebugId(rpcs_failure_peer->peer);
+#ifndef NDEBUG
+  PrintInfoMessage(std::string("\t") + DebugId(contact_) +
+                   " PING response from " + DebugId(rpcs_failure_peer->peer));
+#endif
   if ((transport_condition != transport::kSuccess) &&
       (rpcs_failure_peer->rpcs_failure < kFailureTolerance_)) {
     ++(rpcs_failure_peer->rpcs_failure);
@@ -594,9 +616,13 @@ void Rpcs<TransportType>::FindValueCallback(
             std::make_pair(response.signed_values(i).value(),
                            response.signed_values(i).signature()));
       }
-      DLOG(INFO) << "\t" << DebugId(contact_) << " FIND_VALUE response from "
-                 << DebugId(rpcs_failure_peer->peer) << " found "
-                 << values_and_signatures.size() << " values.";
+#ifndef NDEBUG
+      PrintInfoMessage(std::string("\t") + DebugId(contact_) +
+          " FIND_VALUE response from " + DebugId(rpcs_failure_peer->peer) +
+          " found " +
+          boost::lexical_cast<std::string>(values_and_signatures.size()) +
+          " values.");
+#endif
       callback(RankInfoPtr(new transport::Info(info)), kSuccess,
                values_and_signatures, contacts, cached_copy_holder);
       return;
@@ -605,9 +631,16 @@ void Rpcs<TransportType>::FindValueCallback(
     if (response.closest_nodes_size() != 0) {
       for (int i = 0; i < response.closest_nodes_size(); ++i)
         contacts.push_back(FromProtobuf(response.closest_nodes(i)));
-      DLOG(INFO) << "\t" << DebugId(contact_) << " FIND_VALUE response from "
-                 << DebugId(rpcs_failure_peer->peer) << " found "
-                 << contacts.size() << " contacts.";
+#ifndef NDEBUG
+      std::string found_ids;
+      for (size_t i = 0; i < contacts.size(); ++i)
+        found_ids += " [" + DebugId(contacts[i]) + "]";
+      PrintInfoMessage(std::string("\t") + DebugId(contact_) +
+          " FIND_VALUE response from " + DebugId(rpcs_failure_peer->peer) +
+          " found " +
+          boost::lexical_cast<std::string>(contacts.size()) + " contacts:" +
+          found_ids);
+#endif
       callback(RankInfoPtr(new transport::Info(info)), kFailedToFindValue,
                values_and_signatures, contacts, cached_copy_holder);
       return;
